@@ -37,6 +37,28 @@ int get_names(Display *display, Window window, char **wm_name){
     return 0;
 
 }
+
+char* title_without_alerts(char *source){
+    if (*source != '('){
+        return source;
+    }
+
+    char *new_index = source+1;  // Get past initial open paren
+    char curr_char;
+    int all_numbers = 1;
+    while (curr_char = *new_index++, curr_char != ')' && curr_char != '\0'){
+        if (curr_char < '0' || curr_char > '9'){
+            all_numbers = 0;
+        }
+    }
+
+    if (all_numbers && curr_char) {
+        return new_index+1;
+    } else {
+        return source;
+    }
+}
+
 int main(){
     int retval = 1;
 
@@ -77,7 +99,8 @@ int main(){
                 retval = 0;
 
                 while (*chop) { *chop = '\0'; chop++; }
-                printf("%s\n", wm_name);
+                char *start_pos = title_without_alerts(wm_name);
+                printf("%s\n", start_pos);
 
                 free(wm_name);
             }
