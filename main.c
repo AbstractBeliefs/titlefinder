@@ -30,7 +30,7 @@ int get_names(Display *display, Window window, char **wm_name){
         return 1;
     }
 
-    *wm_name = calloc(ItemCount, sizeof(char));
+    *wm_name = calloc(ItemCount+1, sizeof(char));
     strcpy(*wm_name, data);
     XFree(data);
 
