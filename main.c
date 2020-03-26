@@ -4,13 +4,21 @@
 
 #include <X11/Xlib.h>
 
+// My WM titles for a chromium window with youtube looks like:
+// (123) Unknown Mortal Orchestra - Multilove (Video) - YouTube - Chromium
+// ^^^^^|                                           |^^^^^^^^^^^^^^^^^^^^^
+//      This bit trimmed by title_without_alerts    |
+//                                                  This bit trimmed in main
+
+// Get the _NET_WM_NAME for a given window.
+// Can be extended to get _NET_WM_VISIBLE_NAME, but not needed.
 int get_names(Display *display, Window window, char **wm_name){
     Atom WM_Name = XInternAtom(display, "_NET_WM_NAME", 0);
     Atom ActualType;
     int format;
     unsigned long ItemCount;
     unsigned long BytesRemaining;
-    unsigned char *data;
+    unsigned char *wm_name_text_data;
     int result = XGetWindowProperty(
         display,                        // Display
         window,                         // Window
@@ -22,22 +30,22 @@ int get_names(Display *display, Window window, char **wm_name){
         &format,                        // Returned: the actual format
         &ItemCount,                     // Returned: item count
         &BytesRemaining,                // Returned: number bytes left to read
-        &data                           // Returned: the returned data
+        &wm_name_text_data              // Returned: the returned data
     );
     
     if (result < Success || ItemCount <= 0){
-        XFree(data);
+        XFree(wm_name_text_data);
         return 1;
     }
 
     *wm_name = calloc(ItemCount+1, sizeof(char));
-    strcpy(*wm_name, data);
-    XFree(data);
+    strcpy(*wm_name, wm_name_text_data);
+    XFree(wm_name_text_data);
 
     return 0;
-
 }
 
+// Trim the leading alert count on a window title
 char* title_without_alerts(char *source){
     if (*source != '('){
         return source;
@@ -69,7 +77,7 @@ int main(){
     int format;
     unsigned long ItemCount;
     unsigned long BytesRemaining;
-    unsigned char *data;
+    unsigned char *window_list;
     int result = XGetWindowProperty(
         display,                        // Display
         XDefaultRootWindow(display),    // Window
@@ -81,11 +89,11 @@ int main(){
         &format,                        // Returned: the actual format
         &ItemCount,                     // Returned: item count
         &BytesRemaining,                // Returned: number bytes left to read
-        &data                           // Returned: the returned data
+        &window_list                    // Returned: the returned data
     );
 
     if (result >= Success && ItemCount > 0){
-        Window *windows = (Window*)data;
+        Window *windows = (Window*)window_list;
         for (size_t windex = 0; windex < ItemCount; windex++){
             Window w = (Window)windows[windex];
 
@@ -107,7 +115,7 @@ int main(){
         }
     }
  
-    XFree(data);
+    XFree(window_list);
     XCloseDisplay(display);
     return retval;
 }
