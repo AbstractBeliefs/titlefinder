@@ -99,7 +99,7 @@ int main(){
 
             char *wm_name;
             if (!get_names(display, w, &wm_name)){
-                char *chop = strstr(wm_name, " - YouTube - Chromium");
+                char *chop = strstr(wm_name, " - YouTube");
                 if (chop == NULL){
                     free(wm_name);
                     continue;
